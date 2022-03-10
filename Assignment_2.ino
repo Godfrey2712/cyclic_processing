@@ -1,5 +1,5 @@
 //ASSIGNMENT 2 BY GODFREY INYAMA//
-/DEMONSTRATION OF CYCLIC EXECUTIVE//
+//DEMONSTRATION OF CYCLIC EXECUTIVE//
 
 
 #define LED 21 //Task1 WatchDog Signal from SignalB in Assignment1
@@ -58,9 +58,9 @@ void task1()
   unsigned int presentTime = millis();
 //for task 1
   if (presentTime - previousTime_LED >= Time_Task1) {
-  while (millis()  <= (presentTime + B)) {
+  while (millis()  <= (presentTime + (B/1000))) {
   digitalWrite(LED, HIGH);
-  Serial.print(presentTime / 1000);
+  Serial.print(presentTime / 1000); //Counting back in seconds
   Serial.println("Task 1");
     }
     digitalWrite(LED, LOW);
