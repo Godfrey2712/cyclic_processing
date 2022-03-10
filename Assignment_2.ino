@@ -12,9 +12,9 @@ float analogue_input_task4[4] = {0,0,0,0}; //
 float task5_average = 0; //initializing task5_average value as LOW
 
 int error_code = 0;//initializing error value as LOW
-int monitor_task2 = false; //initializing task5_average value as false
+int monitor_task2 = 0; //initializing task5_average value as false
 int readValue = 0;
-int ledValue = 0;
+int ledState = LOW;
 float half_max = 3.3/2;
 int Counter = 0;
 
@@ -35,10 +35,10 @@ const int Time_Task5 = 42; //actual value = 41.67
 const int Time_Task6 = 100;
 const int Time_Task7 = 33; //actual value = 33.33
 const int Time_Task8 = 33; //actual value = 33.33 
-const int Time_Task9 = 500;
+const int Time_Task9 = 5000;
 const float B = 50;
 
-unsigned int previousTime_LED = 0;
+unsigned long previousTime_LED = 0;
 int previousTime;
 
 //Function models
@@ -55,30 +55,33 @@ void task9();
 //function for task 1
 void task1() 
 {
-  unsigned int presentTime = millis();
-//for task 1
+  // check to see if it's time to blink the LED; that is, if the difference
+  // between the current time and last time you blinked the LED is bigger than
+  // the interval at which you want to blink the LED.
+  unsigned long presentTime = millis();
+
   if (presentTime - previousTime_LED >= Time_Task1) {
-  while (millis()  <= (presentTime + (B/1000))) {
-  digitalWrite(LED, HIGH);
+    // if the LED is off turn it on and vice-versa:
+  ledState = (ledState == LOW) ? HIGH : LOW;
+
+  // set the LED with the ledState of the variable:
+  digitalWrite(LED, ledState);
+  
+  // save the last time you blinked the LED
+  previousTime_LED = presentTime;
+  
   Serial.print(presentTime / 1000); //Counting back and printing in seconds
   Serial.println("Task 1");
     }
-    digitalWrite(LED, LOW);
-    previousTime_LED = presentTime;
-  //Serial.println ("Task 1");
-  //digitalWrite (LED, HIGH);
-  //delayMicroseconds(50);
-  //digitalWrite (LED, LOW);
-  }
 }
   
 void task2() {
   Serial.println ("Task 2");
   if (digitalRead (digital_input)){
-    monitor_task2 = true;
+    monitor_task2 = 1;
   }
   else{
-    monitor_task2 = false;
+    monitor_task2 = 0;
   }
   }
 
@@ -108,10 +111,10 @@ void task4() {
 void task5() {
 
   task5_average = 0;
-  task5_average = analogue_input_task4[1] + analogue_input_task4[2] + analogue_input_task4[3] + analogue_input_task4[4];
+  task5_average = analogue_input_task4[4] + 2*analogue_input_task4[4] + 3*analogue_input_task4[4] + 4*analogue_input_task4[4];
   task5_average = task5_average / 4;
   Serial.print ("Task 5 average = ");
-  Serial.println (analogue_input_task4[4]);
+  Serial.println (task5_average);
 
   }
 
@@ -124,8 +127,8 @@ void task6() {
 
 void task7() {
   Serial.println ("Task 7");
-  float half_max = 3.3/2;
-  if(analogRead (analogue_reader) > half_max){
+  float half_max = (4*analogue_input_task4[4])/2;
+  if(task5_average > half_max){
     error_code = 1;
   }
   else{
@@ -149,7 +152,7 @@ void task9() {
   Serial.print ("SWITCH VALUE : ");
   Serial.println (monitor_task2);
   Serial.print ("Square wave Frequency = ");
-  Serial.println (monitor_task2);
+  Serial.println (task3_frequency);
   Serial.print ("Analogue Input = ");
   Serial.println (task5_average);
   
@@ -159,7 +162,7 @@ void setup() {
 
 
 // initialize serial communication at 9600 bits per second:
-  Serial.begin(115200);
+  Serial.begin(9600);
 
 // make the pushbutton's pin an input:
   pinMode(digital_input, INPUT);
