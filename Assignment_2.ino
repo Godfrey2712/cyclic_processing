@@ -1,4 +1,6 @@
-//#include <Ticker.h>
+//ASSIGNMENT 2 BY GODFREY INYAMA//
+/DEMONSTRATION OF CYCLIC EXECUTIVE//
+
 
 #define LED 21 //Task1 WatchDog Signal from SignalB in Assignment1
 #define error_LED 5 // Vizualise the error_code from Task7
