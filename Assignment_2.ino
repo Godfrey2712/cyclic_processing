@@ -35,7 +35,7 @@ const int Time_Task5 = 42; //actual value = 41.67
 const int Time_Task6 = 100;
 const int Time_Task7 = 33; //actual value = 33.33
 const int Time_Task8 = 33; //actual value = 33.33 
-const int Time_Task9 = 5000;
+const int Time_Task9 = 500;
 const float B = 50;
 
 unsigned int previousTime_LED = 0;
@@ -60,7 +60,7 @@ void task1()
   if (presentTime - previousTime_LED >= Time_Task1) {
   while (millis()  <= (presentTime + (B/1000))) {
   digitalWrite(LED, HIGH);
-  Serial.print(presentTime / 1000); //Counting back in seconds
+  Serial.print(presentTime / 1000); //Counting back and printing in seconds
   Serial.println("Task 1");
     }
     digitalWrite(LED, LOW);
