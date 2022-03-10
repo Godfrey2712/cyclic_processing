@@ -36,10 +36,9 @@ const int Time_Task6 = 100;
 const int Time_Task7 = 33; //actual value = 33.33
 const int Time_Task8 = 33; //actual value = 33.33 
 const int Time_Task9 = 5000;
-const float B = 50;
-
+const float B = 0.050;
+int interval = B;
 unsigned long previousTime_LED = 0;
-int previousTime;
 
 //Function models
 void task1();
@@ -60,9 +59,17 @@ void task1()
   // the interval at which you want to blink the LED.
   unsigned long presentTime = millis();
 
-  if (presentTime - previousTime_LED >= Time_Task1) {
+  if (presentTime - previousTime_LED >= interval) {
     // if the LED is off turn it on and vice-versa:
-  ledState = (ledState == LOW) ? HIGH : LOW;
+    if (ledState) {
+      //LED is currently on, set time to stay off
+      interval = Time_Task1;
+    } else {
+      //LED is currently off; set time to stay on
+      interval = B; 
+    }
+     //Toggle the LED's state
+     ledState = !(ledState);
 
   // set the LED with the ledState of the variable:
   digitalWrite(LED, ledState);
@@ -174,7 +181,6 @@ void setup() {
   pinMode(error_LED, OUTPUT);
 
 attachInterrupt(digitalPinToInterrupt(squarewave_reader), frequency_ISR, RISING);
-  previousTime = millis();
 }
 
 void loop() {
