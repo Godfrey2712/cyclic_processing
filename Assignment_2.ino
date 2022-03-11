@@ -49,7 +49,7 @@ unsigned long currentTime;
 
 
 //Rates (time) for each task performance
-const int Time_Task1 = 14;                     //actual value = 14.45
+const int Time_Task1 = 14000;                     //actual value = 14.45
 const int Time_Task2 = 200; 
 const int Time_Task3 = 1000;
 const int Time_Task4 = 42;                     //actual value = 41.67
@@ -58,17 +58,17 @@ const int Time_Task6 = 100;
 const int Time_Task7 = 33;                     //actual value = 33.33
 const int Time_Task8 = 33;                     //actual value = 33.33 
 const int Time_Task9 = 5000;
-const int B = 50;                              //time of HIGH from Assignment 1
+const int B = 5000000;                              //time of HIGH from Assignment 1
 
 
 //======================================================//
 //---------------On and Off Times-----------------------//
 //======================================================//
-const unsigned int onTime = B / 1000;
-const unsigned int offTime = Time_Task1;
+const int unsigned onTime = B / 1000;
+const int unsigned offTime = Time_Task1;
  
-unsigned long previousMillis=0;                //Tracks the last time event fired
-int interval = onTime;                         // Interval is how long we wait
+unsigned long previousMillis=0;                 //Tracks the last time event fired
+int interval = offTime;                         // Interval is how long we wait
 boolean ledState = true;                       // Used to track if LED should be on or off
 
 //===============================================================//
@@ -84,7 +84,7 @@ void task7();
 void task8();
 void task9();
 
-/=================================//
+//=================================//
 //-------function for task 1------//
 //================================//
 void task1() {
@@ -98,20 +98,25 @@ void task1() {
  
   // Compare to previous capture to see if enough time has passed
   if ((unsigned long)(currentMillis - previousMillis) >= interval) {
-    while (millis() <= (currentMillis + onTime)){
-  
-  //keep LED on for onTime
-      digitalWrite(LED, HIGH);
+   
+   // Change wait interval, based on current LED state
+    if (ledState) {
+      // LED is currently on, set time to stay off
+      interval = offTime;
+    } else {
+      // LED is currently off, set time to stay on
+      interval = onTime;
     }
-    digitalWrite(LED, LOW);
- 
+    // Toggle the LED's state
+    ledState = !(ledState);
+
   // Save the current time to compare "later"
     previousMillis = currentMillis;
   }
 }
   
 
-/=================================//
+//=================================//
 //-------function for task 2------//
 //================================//
 void task2() {
@@ -126,7 +131,7 @@ void task2() {
 
 
 
-/=================================//
+//=================================//
 //-------function for task 3------//
 //================================//
 void task3() {
@@ -155,7 +160,7 @@ void task3() {
 }
 
 
-/=================================//
+//=================================//
 //-------function for task 4------//
 //================================//
 void task4() {
@@ -168,7 +173,7 @@ void task4() {
   }
 
 
-/=================================//
+//=================================//
 //-------function for task 5------//
 //================================//
 void task5() {
@@ -184,7 +189,7 @@ void task5() {
 }
 
 
-/=================================//
+//=================================//
 //-------function for task 6------//
 //================================//
 void task6() {
@@ -195,7 +200,7 @@ void task6() {
 }
 
 
-/=================================//
+//=================================//
 //-------function for task 7------//
 //================================//
 void task7() {
@@ -212,7 +217,7 @@ void task7() {
 }
 
 
-/=================================//
+//=================================//
 //-------function for task 8------//
 //================================//
 void task8() {
@@ -228,7 +233,7 @@ void task8() {
 }
 
 
-/=================================//
+//=================================//
 //-------function for task 9------//
 //================================//
 void task9() {  
