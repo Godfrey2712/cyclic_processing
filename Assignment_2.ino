@@ -49,7 +49,7 @@ unsigned long currentTime;
 
 
 //Rates (time) for each task performance
-const int Time_Task1 = 14000;                  //actual value = 14.45
+const int Time_Task1 = 14;                  //actual value = 14.45
 const int Time_Task2 = 200; 
 const int Time_Task3 = 1000;
 const int Time_Task4 = 42;                     //actual value = 41.67
@@ -58,7 +58,7 @@ const int Time_Task6 = 100;
 const int Time_Task7 = 33;                     //actual value = 33.33
 const int Time_Task8 = 33;                     //actual value = 33.33 
 const int Time_Task9 = 5000;
-const int B = 5000000;                         //time of HIGH from Assignment 1
+const int B = 50;                         //time of HIGH from Assignment 1
 
 
 //======================================================//
