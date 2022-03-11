@@ -34,18 +34,18 @@ float task5_average = 0; //initializing task5_average value as LOW
 int error_code = 0;//initializing error value as LOW
 int monitor_task2 = 0; //initializing task5_average value as false
 int readValue = 0;
-int ledState = LOW;
+//int ledState = LOW;
 int Counter = 0;
 
 //variables for Task 3
-int frequency_counted;
-unsigned long my_time;
-volatile int task3_frequency;
-unsigned long frequency_task_time = 0;
+int freq_flag = 0; //the flag to indicate if the signal is low then went high
+int frequency = 0; //the value of the frequency in Hz
+int freq_count = 0; //The number of pulses over the time period
+int raw_value;
+int raw_value_old;
+unsigned long start_timeF;
+unsigned long currentTime;
 
-//frequency task list
-void frequency_ISR();
-void frequency_routine();
 
 //Rates (time) for each task performance
 const int Time_Task1 = 14; //actual value = 14.45
@@ -58,8 +58,20 @@ const int Time_Task7 = 33; //actual value = 33.33
 const int Time_Task8 = 33; //actual value = 33.33 
 const int Time_Task9 = 5000;
 const int B = 50; //time of HIGH from Assignment 1
-int interval = B;
 unsigned long previousTime_LED = 0;
+
+// On and Off Times (as int, max=32secs)
+const unsigned int onTime = B / 1000;
+const unsigned int offTime = Time_Task1;
+ 
+// Tracks the last time event fired
+unsigned long previousMillis=0;
+ 
+// Interval is how long we wait
+int interval = onTime;
+ 
+// Used to track if LED should be on or off
+boolean ledState = true;
 
 //Function models to be looped 
 void task1();
@@ -75,41 +87,37 @@ void task9();
 
 //function for task 1
 void task1() {
-  /*
-  // check to see if it's time to blink the LED; that is, if the difference
-  // between the current time and last time you blinked the LED is bigger than
-  // the interval at which you want to blink the LED.
-  unsigned long presentTime = millis();
-
-  if (presentTime - previousTime_LED >= interval) {
-    // if the LED is off turn it on and vice-versa:
-    if (ledState) {
-      //LED is currently on, set time to stay off
-      interval = Time_Task1;
-    } else {
-      //LED is currently off; set time to stay on
-      interval = B; 
-    }
-     //Toggle the LED's state
-     ledState = !(ledState);
-
-  // set the LED with the ledState of the variable:
+// Set Pin 13 to state of LED13state each timethrough loop()
+  // If LED13State hasn't changed, neither will the pin
   digitalWrite(LED, ledState);
+ 
+  // Grab snapshot of current time, this keeps all timing
+  // consistent, regardless of how much code is inside the next if-statement
+  unsigned long currentMillis = millis();
+ 
+  // Compare to previous capture to see if enough time has passed
+  if ((unsigned long)(currentMillis - previousMillis) >= interval) {
+    while (millis() <= (currentMillis + onTime)){
+//keep Red on for 1 sec
+      digitalWrite(LED, HIGH);
+    }
+    digitalWrite(LED, LOW);
+ 
+    // Save the current time to compare "later"
+    previousMillis = currentMillis;
+  }
   
-  // save the last time you blinked the LED
-  previousTime_LED = presentTime;
-  
-  Serial.print(presentTime / 1000); //Counting back and printing in seconds
+  Serial.print(currentMillis / 1000); //Counting back and printing in seconds
   Serial.println("Task 1");
     }
-    */
+    /*
   Serial.println ("Task 1");
   digitalWrite (LED, HIGH);
   delayMicroseconds(B);
   digitalWrite (LED, LOW);
   delay (14.450);
-}
-
+  */
+  
 
 //function for task 2  
 void task2() {
@@ -123,17 +131,40 @@ void task2() {
 }
 
 
-//function for frequency_ISR which is called within the interrupt setup
-void frequency_ISR(){
-  frequency_counted = frequency_counted + 1;
-}
-
 
 //function for task 3
 void task3() {
-  task3_frequency = frequency_counted;
-  frequency_counted = 0;
-  Serial.printf("%d ", task3_frequency);
+raw_value=digitalRead(squarewave_reader);
+  raw_value_old= raw_value;
+  freq_count=0;    
+ 
+
+  start_timeF= micros(); //define the start time of the clock
+  currentTime=micros();
+    while ((currentTime-start_timeF) < 40000){  //effectively delays for 0.04seconds, the optimum time for detecting frequency that keeps errors within +/- 2.5%
+       
+      raw_value=digitalRead(squarewave_reader);
+      if (raw_value_old != raw_value){ //If frequency input is high and was previously low (ie flag is on) add one to the value of the frequency counter.
+        freq_count++;
+        raw_value_old=raw_value;}
+     
+     
+      //Serial.println(raw_value);
+      //Serial.println(raw_value_old);
+      currentTime=micros();
+        
+    } 
+    if (micros()>= start_timeF +40000){ //calculate the frequency by scaling 0.04s up to 1s
+        frequency =freq_count*25/2;  
+        Serial.println("Task 3");
+      }
+Serial.println(raw_value);  
+Serial.print("Count");
+Serial.println(freq_count);  //print the inital count
+Serial.print("frequency = ");
+Serial.print(frequency);
+Serial.println("Hz"); //print the processed frequency
+
 }
 
 
@@ -154,7 +185,7 @@ void task4() {
 void task5() {
 
   task5_average = 0;
-  task5_average = analogue_input_task4[4] + 2*analogue_input_task4[4] + 3*analogue_input_task4[4] + 4*analogue_input_task4[4];
+  task5_average = analogue_input_task4[1];
   task5_average = task5_average / 4;
   Serial.print ("Task 5 average = ");
   Serial.println (task5_average);
@@ -173,8 +204,8 @@ void task6() {
 //function for task 7
 void task7() {
   Serial.println ("Task 7");
-  float half_max = (4*analogue_input_task4[4])/2;
-  if(task5_average > half_max){
+  int half_max = analogRead(analogue_reader) / 2;
+  if(1700 > half_max){
     error_code = 1;
   }
   else{
@@ -190,7 +221,8 @@ void task8() {
   if(error_code){
     digitalWrite(error_LED,HIGH);
   }
-  else{
+  else
+   {
    digitalWrite(error_LED,LOW);
   }
 }
@@ -202,7 +234,7 @@ void task9() {
   Serial.print ("SWITCH VALUE : ");
   Serial.println (monitor_task2);
   Serial.print ("Square wave Frequency = ");
-  Serial.println (task3_frequency);
+  Serial.println (squarewave_reader);
   Serial.print ("Analogue Input = ");
   Serial.println (task5_average);
 }
@@ -220,12 +252,9 @@ void setup() {
 // put your setup code here, to run once:
   pinMode(LED, OUTPUT);
   pinMode(error_LED, OUTPUT);
-
-attachInterrupt(digitalPinToInterrupt(squarewave_reader), frequency_ISR, RISING);
 }
 
-void loop() {
- 
+void loop(){
 Counter++;
 
 if (Counter % Time_Task1 == 0) task1();
