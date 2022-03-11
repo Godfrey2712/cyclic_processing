@@ -23,22 +23,22 @@ Task 9: Logging the following every 5sec
 **************************************************************************************/
 
 
-#define LED 21 //Task1 WatchDog Signal from SignalB in Assignment1
-#define error_LED 5 // LED to vizualize the error_code from Task 7 in Task 8
-#define digital_input 4 //Task2 Digital Input Monitor using one switch
-#define squarewave_reader 2 //Task3 3.3v square wave
-#define analogue_reader 34 //Task4 Analogue Input triggered by a switch
+#define LED 21                             //Task1 WatchDog Signal from Signal B in Assignment1 which is 50us
+#define error_LED 5                        // LED to vizualize the error_code from Task 7 in Task 8
+#define digital_input 4                    //Task2 Digital Input Monitor using one switch
+#define squarewave_reader 2                //Task3 3.3v square wave for reading frequency
+#define analogue_reader 34                 //Task4 Analogue Input reader using a potentiometer
 
 float analogue_input_task4[4] = {0,0,0,0}; //array to store 4 cocurrent values from task 4 in a map
-float task5_average = 0; //initializing task5_average value as LOW
+float task5_average = 0;                   //initializing task5_average value as LOW
 
-int error_code = 0;//initializing error value as LOW
-int monitor_task2 = 0; //initializing task5_average value as false
-int readValue = 0;
-//int ledState = LOW;
-int Counter = 0;
+int error_code = 0;                        //initializing error value as LOW
+int monitor_task2 = 0;                     //initializing task5_average value as false
+int Counter = 0;                           // Counter to record the number of cycle went through by the Cyclic Executive
 
-//variables for Task 3
+//======================================================//
+//-----------variables for Task 3-----------------------//
+//======================================================//
 int freq_flag = 0; //the flag to indicate if the signal is low then went high
 int task3_frequency = 0; //the value of the frequency in Hz
 int freq_count = 0; //The number of pulses over the time period
@@ -49,32 +49,31 @@ unsigned long currentTime;
 
 
 //Rates (time) for each task performance
-const int Time_Task1 = 14; //actual value = 14.45
+const int Time_Task1 = 14;                     //actual value = 14.45
 const int Time_Task2 = 200; 
 const int Time_Task3 = 1000;
-const int Time_Task4 = 42; //actual value = 41.67
-const int Time_Task5 = 42; //actual value = 41.67
+const int Time_Task4 = 42;                     //actual value = 41.67
+const int Time_Task5 = 42;                     //actual value = 41.67
 const int Time_Task6 = 100;
-const int Time_Task7 = 33; //actual value = 33.33
-const int Time_Task8 = 33; //actual value = 33.33 
+const int Time_Task7 = 33;                     //actual value = 33.33
+const int Time_Task8 = 33;                     //actual value = 33.33 
 const int Time_Task9 = 5000;
-const int B = 50; //time of HIGH from Assignment 1
-unsigned long previousTime_LED = 0;
+const int B = 50;                              //time of HIGH from Assignment 1
 
-// On and Off Times (as int, max=32secs)
+
+//======================================================//
+//---------------On and Off Times-----------------------//
+//======================================================//
 const unsigned int onTime = B / 1000;
 const unsigned int offTime = Time_Task1;
  
-// Tracks the last time event fired
-unsigned long previousMillis=0;
- 
-// Interval is how long we wait
-int interval = onTime;
- 
-// Used to track if LED should be on or off
-boolean ledState = true;
+unsigned long previousMillis=0;                //Tracks the last time event fired
+int interval = onTime;                         // Interval is how long we wait
+boolean ledState = true;                       // Used to track if LED should be on or off
 
-//Function models to be looped 
+//===============================================================//
+//------------Function models to be called in the loop-----------// 
+//===============================================================//
 void task1();
 void task2();
 void task3();
@@ -85,42 +84,36 @@ void task7();
 void task8();
 void task9();
 
-
-//function for task 1
+/=================================//
+//-------function for task 1------//
+//================================//
 void task1() {
-// Set Pin 13 to state of LED13state each timethrough loop()
-  // If LED13State hasn't changed, neither will the pin
+  //Serial.println("Task 1");
+  // Set LED to state of ledState each timethrough loop()
+  // If ledState hasn't changed, neither will the pin
   digitalWrite(LED, ledState);
  
-  // Grab snapshot of current time, this keeps all timing
-  // consistent, regardless of how much code is inside the next if-statement
+  // This keeps all timing consistent, regardless of how much code is inside the next if-statement
   unsigned long currentMillis = millis();
  
   // Compare to previous capture to see if enough time has passed
   if ((unsigned long)(currentMillis - previousMillis) >= interval) {
     while (millis() <= (currentMillis + onTime)){
-//keep LED on for onTime
+  
+  //keep LED on for onTime
       digitalWrite(LED, HIGH);
     }
     digitalWrite(LED, LOW);
  
-    // Save the current time to compare "later"
+  // Save the current time to compare "later"
     previousMillis = currentMillis;
   }
-  
-  //Serial.print(currentMillis / 1000); //Counting back and printing in seconds
-  //Serial.println("Task 1");
-    }
-    /*
-  Serial.println ("Task 1");
-  digitalWrite (LED, HIGH);
-  delayMicroseconds(B);
-  digitalWrite (LED, LOW);
-  delay (14.450);
-  */
+}
   
 
-//function for task 2  
+/=================================//
+//-------function for task 2------//
+//================================//
 void task2() {
   //Serial.println ("Task 2");
   if (digitalRead (digital_input)){
@@ -133,9 +126,12 @@ void task2() {
 
 
 
-//function for task 3
+/=================================//
+//-------function for task 3------//
+//================================//
 void task3() {
-unfiltered_frequency=digitalRead(squarewave_reader);
+  //Serial.println("Task 3");
+  unfiltered_frequency=digitalRead(squarewave_reader);
   unfiltered_frequency_old= unfiltered_frequency;
   freq_count=0;    
  
@@ -154,34 +150,29 @@ unfiltered_frequency=digitalRead(squarewave_reader);
     } 
     if (micros()>= start_timeF +40000){ //calculate the frequency by scaling 0.04s up to 1s
         task3_frequency =freq_count*25/2;  
-        //Serial.println("Task 3");
+        
       }
-//Serial.println(unfiltered_frequency);  
-//Serial.print("Count");
-//Serial.println(freq_count);  //print the inital count
-//Serial.print("frequency = ");
-//Serial.print(squarewave_reader);
-//Serial.println("Hz"); //print the processed frequency
-
 }
 
 
-//function for task 4
+/=================================//
+//-------function for task 4------//
+//================================//
 void task4() {
   //Serial.println ("Task 4");
-  //Serial.println (analogRead(analogue_reader));
+
   for(int i=1; i<4; i++){
     analogue_input_task4[i] = analogue_input_task4[i+1];
   }
   analogue_input_task4[4] = analogRead (analogue_reader);
-  //Serial.print("Analog value = ");
-  //Serial.println(analogRead(analogue_reader));
   }
 
 
-//function for task 5
+/=================================//
+//-------function for task 5------//
+//================================//
 void task5() {
-
+  //Serial.println ("Task 5");
   task5_average = 0;
   float analogue_value = analogRead (analogue_reader);
   analogue_input_task4[0] = analogue_value;
@@ -190,15 +181,12 @@ void task5() {
   analogue_input_task4[3] = analogue_value+3;
   task5_average = analogue_input_task4[0] + analogue_input_task4[1] + analogue_input_task4[2] + analogue_input_task4[3];
   task5_average = task5_average / 4;
-  
-  //task5_average = analogue_input_task4[1];
-  //task5_average = task5_average / 4;
-  //Serial.print ("Task 5 average = ");
-  //Serial.println (task5_average);
 }
 
 
-//function for task 6
+/=================================//
+//-------function for task 6------//
+//================================//
 void task6() {
   //Serial.println ("Task 6");
   for(int i=0; i<1000; i++){
@@ -207,7 +195,9 @@ void task6() {
 }
 
 
-//function for task 7
+/=================================//
+//-------function for task 7------//
+//================================//
 void task7() {
   //Serial.println ("Task 7");
 
@@ -222,7 +212,9 @@ void task7() {
 }
 
 
-//function for task 8
+/=================================//
+//-------function for task 8------//
+//================================//
 void task8() {
   //Serial.println ("Task 8");
  
@@ -236,17 +228,11 @@ void task8() {
 }
 
 
-//function for task 9
+/=================================//
+//-------function for task 9------//
+//================================//
 void task9() {  
   Serial.println((String)monitor_task2+ "," + (String) task3_frequency + "Hz," + (String)task5_average);
- // Serial.println ("Task 9");
-  //Serial.print ("SWITCH VALUE : ");
-  //Serial.print (monitor_task2);
-  //Serial.print("frequency = ");
-  //Serial.print(squarewave_reader);
-  //Serial.println("Hz"); //print the processed frequency
-  //Serial.print ("Analogue Input = ");
-  //Serial.println (task5_average);
 }
 
   
