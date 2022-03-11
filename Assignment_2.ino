@@ -41,7 +41,7 @@ int Counter = 0;                           // Counter to record the number of cy
 //======================================================//
 int freq_flag = 0; //the flag to indicate if the signal is low then went high
 int task3_frequency = 0; //the value of the frequency in Hz
-int freq_count = 0; //The number of pulses over the time period
+int frequency_count = 0; //The number of pulses over the time period
 int unfiltered_frequency;
 int unfiltered_frequency_old;
 unsigned long start_timeF;
@@ -49,7 +49,7 @@ unsigned long currentTime;
 
 
 //Rates (time) for each task performance
-const int Time_Task1 = 14000;                     //actual value = 14.45
+const int Time_Task1 = 14000;                  //actual value = 14.45
 const int Time_Task2 = 200; 
 const int Time_Task3 = 1000;
 const int Time_Task4 = 42;                     //actual value = 41.67
@@ -58,7 +58,7 @@ const int Time_Task6 = 100;
 const int Time_Task7 = 33;                     //actual value = 33.33
 const int Time_Task8 = 33;                     //actual value = 33.33 
 const int Time_Task9 = 5000;
-const int B = 5000000;                              //time of HIGH from Assignment 1
+const int B = 5000000;                         //time of HIGH from Assignment 1
 
 
 //======================================================//
@@ -67,7 +67,8 @@ const int B = 5000000;                              //time of HIGH from Assignme
 const int unsigned onTime = B / 1000;
 const int unsigned offTime = Time_Task1;
  
-unsigned long previousMillis=0;                 //Tracks the last time event fired
+unsigned long previousMillis=0;                 //Tracks the last time event fired for task 1
+unsigned long previousMillis_task9=0;           //Tracks the last time event fired for task 9
 int interval = offTime;                         // Interval is how long we wait
 boolean ledState = true;                       // Used to track if LED should be on or off
 
@@ -138,24 +139,23 @@ void task3() {
   //Serial.println("Task 3");
   unfiltered_frequency=digitalRead(squarewave_reader);
   unfiltered_frequency_old= unfiltered_frequency;
-  freq_count=0;    
+  frequency_count=0;    
  
 
   start_timeF= micros(); //define the start time of the clock
   currentTime=micros();
-    while ((currentTime-start_timeF) < 40000){  //effectively delays for 0.04seconds, the optimum time for detecting frequency that keeps errors within +/- 2.5%
+    while ((currentTime-start_timeF) < 40000){                 //40000uS is the ideal time for detecting frequency that keeps errors within a tolerance of 2.5%
        
       unfiltered_frequency=digitalRead(squarewave_reader);
-      if (unfiltered_frequency_old != unfiltered_frequency){ //If frequency input is high and was previously low (ie flag is on) add one to the value of the frequency counter.
-        freq_count++;
+      if (unfiltered_frequency_old != unfiltered_frequency){  //add one to the value of the frequency counter if frequncy input was high but was low.
+        frequency_count++;
         unfiltered_frequency_old=unfiltered_frequency;}
      
       currentTime=micros();
         
     } 
-    if (micros()>= start_timeF +40000){ //calculate the frequency by scaling 0.04s up to 1s
-        task3_frequency =freq_count*25/2;  
-        
+    if (micros()>= start_timeF +40000){                       //increasing 40000uS to 1sec
+        task3_frequency =frequency_count*25/2;                //actual frequency read from the frequency generator 
       }
 }
 
@@ -169,7 +169,7 @@ void task4() {
   for(int i=1; i<4; i++){
     analogue_input_task4[i] = analogue_input_task4[i+1];
   }
-  analogue_input_task4[4] = analogRead (analogue_reader);
+  analogue_input_task4[4] = analogRead (analogue_reader);    //reading one analogue value
   }
 
 
@@ -180,13 +180,13 @@ void task5() {
   //Serial.println ("Task 5");
   task5_average = 0;
   float analogue_value = analogRead (analogue_reader);
-  analogue_input_task4[0] = analogue_value;
-  analogue_input_task4[1] = analogue_value+1;
-  analogue_input_task4[2] = analogue_value+2;
-  analogue_input_task4[3] = analogue_value+3;
-  task5_average = analogue_input_task4[0] + analogue_input_task4[1] + analogue_input_task4[2] + analogue_input_task4[3];
-  task5_average = task5_average / 4;
-}
+  analogue_input_task4[0] = analogue_value;                  //first analogue value
+  analogue_input_task4[1] = analogue_value+1;                //second analogue value with an increament of 1
+  analogue_input_task4[2] = analogue_value+2;                //third analogue value with an increament of 2
+  analogue_input_task4[3] = analogue_value+3;                //fourth analogue value with an increament of 3
+  task5_average = analogue_input_task4[0] + analogue_input_task4[1] + analogue_input_task4[2] + analogue_input_task4[3];    //sum of all four values from above
+  task5_average = task5_average / 4;                         //average calculated by dividing the sum by 4
+} 
 
 
 //=================================//
@@ -206,9 +206,9 @@ void task6() {
 void task7() {
   //Serial.println ("Task 7");
 
-  int max_range = 2513;
-  int half_max = max_range / 2;
-  if(task5_average > half_max){
+  int max_range = 2513;                //maximum range when varied on the potentiometer
+  int half_max = max_range / 2;        //half of maximum range calculated
+  if(task5_average > half_max){        //if analogue average value calculated is greater than half the maximum range show error code by Turning ON LED else Turn OFF LED
     error_code = 1;
   }
   else{
@@ -224,11 +224,11 @@ void task8() {
   //Serial.println ("Task 8");
  
   if(error_code){
-    digitalWrite(error_LED,HIGH);
+    digitalWrite(error_LED,HIGH);     //turned on because task5_average > half_max
   }
   else
    {
-   digitalWrite(error_LED,LOW);
+   digitalWrite(error_LED,LOW);       //turned on because task5_average < half_max
   }
 }
 
@@ -236,35 +236,44 @@ void task8() {
 //=================================//
 //-------function for task 9------//
 //================================//
-void task9() {  
+void task9() { 
+  //===================================================================================================// 
+  //---printing out the values of digital button state, frequency value, and filtered analogue input after every 5seconds---//
+  //===================================================================================================//
+  
+  unsigned long currentMillis_task9 = millis();
+
+  if(currentMillis_task9 - previousMillis_task9 > Time_Task9) {
+    previousMillis_task9 = currentMillis_task9;  
+
   Serial.println((String)monitor_task2+ "," + (String) task3_frequency + "Hz," + (String)task5_average);
+  }
 }
 
   
 void setup() {
 // initialize serial communication at 9600 bits per second:
-  Serial.begin(115200);
+  Serial.begin(9600);
 
 // make the pushbutton's pin an input:
   pinMode(digital_input, INPUT);
   pinMode(squarewave_reader, INPUT);
   pinMode(analogue_reader, INPUT);
   
-// put your setup code here, to run once:
+// make the watch dog signal and error code an output:
   pinMode(LED, OUTPUT);
   pinMode(error_LED, OUTPUT);
 }
 
 void loop(){
 Counter++;
-
-if (Counter % Time_Task1 == 0) task1();
-if (Counter % Time_Task2 == 0) task2();
-if (Counter % Time_Task3 == 0) task3();
-if (Counter % Time_Task4 == 0) task4();
-if (Counter % Time_Task5 == 0) task5();
-if (Counter % Time_Task6 == 0) task6();
-if (Counter % Time_Task7 == 0) task7();
-if (Counter % Time_Task8 == 0) task8();
-if (Counter % Time_Task9 == 0) task9();
+if (Counter % Time_Task1 == 0) task1();//performed every 1 sec
+if (Counter % Time_Task2 == 0) task2();//performed every 14 sec
+if (Counter % Time_Task3 == 0) task3();//performed every 71 sec
+if (Counter % Time_Task4 == 0) task4();//performed every 3 sec
+if (Counter % Time_Task5 == 0) task5();//performed every 3 sec
+if (Counter % Time_Task6 == 0) task6();//performed every 3 sec
+if (Counter % Time_Task7 == 0) task7();//performed every 2 sec
+if (Counter % Time_Task8 == 0) task8();//performed every 2 sec
+if (Counter % Time_Task9 == 0) task9();//performed every 357 sec
 }
